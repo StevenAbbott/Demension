@@ -1,5 +1,6 @@
 package com.example.sbabb.facial.model;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -10,38 +11,50 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
+import java.util.UUID;
 
 public class ModelManager {
 
-    private FirebaseStorage storage;
-    private FirebaseDatabase database;
+    private static ModelManager mModelManager;
+    private Context context;
+    private FirebaseStorage mStorage;
+    private FirebaseDatabase mDatabase;
 
-    public ModelManager() {
-        this.storage = FirebaseStorage.getInstance();
-        this.database = FirebaseDatabase.getInstance();
+    public static ModelManager get(Context context) {
+        if (mModelManager == null) {
+            mModelManager = new ModelManager(context);
+        }
+
+        return mModelManager;
+    }
+
+    private ModelManager(Context context) {
+        this.context = context.getApplicationContext();
+        this.mStorage = FirebaseStorage.getInstance();
+        this.mDatabase = FirebaseDatabase.getInstance();
     }
 
     public FirebaseStorage getStorage() {
-        return storage;
+        return mStorage;
     }
 
     public FirebaseDatabase getDatabase() {
-        return database;
+        return mDatabase;
     }
 
-    public void createUsersReference() {
-        DatabaseReference UserRef = database.getReference().child("users");
+    public void createPersonssReference() {
+        DatabaseReference personRef = mDatabase.getReference().child("persons");
     }
 
     public void createImageReference() {
-        StorageReference storageRef = storage.getReference().child("images");
+        StorageReference storageRef = mStorage.getReference().child("images");
     }
 
-    public UploadTask uploadPerson(User user, Bitmap bitmap) {
-        DatabaseReference userRef = database.getReference().child("users").child(user.getKey());
-        userRef.setValue(user);
+    public UploadTask uploadPerson(Person person, Bitmap bitmap) {
+        DatabaseReference personRef = mDatabase.getReference().child("persons").child(person.getKey());
+        personRef.setValue(person);
 
-        StorageReference imageRef = storage.getReference().child("images").child(user.getKey());
+        StorageReference imageRef = mStorage.getReference().child("images").child(person.getKey());
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] data = baos.toByteArray();
@@ -49,15 +62,21 @@ public class ModelManager {
         return uploadTask;
     }
 
-    public DatabaseReference getUserRef(String userKey) {
-        return database.getReference().child("users").child(userKey);
+    public DatabaseReference getPersonRef(String personKey) {
+        return mDatabase.getReference().child("persons").child(personKey);
     }
 
-    public StorageReference getUserImageRef(User user) {
-        return storage.getReference().child("images").child(user.getKey());
+    public StorageReference getPersonImageRef(Person person) {
+        return mStorage.getReference().child("images").child(person.getKey());
     }
 
     public Bitmap byteArrayToBitMap(byte[] byteArray) {
         return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+    }
+
+    public String generatePersonKey() {
+        UUID id = UUID.randomUUID();
+        String key = id.toString();
+        return key;
     }
 }
