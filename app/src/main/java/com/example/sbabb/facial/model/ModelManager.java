@@ -11,12 +11,13 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.UUID;
 
 public class ModelManager {
 
     private static ModelManager mModelManager;
-    private Context context;
+    private Context mContext;
     private FirebaseStorage mStorage;
     private FirebaseDatabase mDatabase;
 
@@ -29,7 +30,7 @@ public class ModelManager {
     }
 
     private ModelManager(Context context) {
-        this.context = context.getApplicationContext();
+        this.mContext = context.getApplicationContext();
         this.mStorage = FirebaseStorage.getInstance();
         this.mDatabase = FirebaseDatabase.getInstance();
     }
@@ -66,8 +67,25 @@ public class ModelManager {
         return mDatabase.getReference().child("persons").child(personKey);
     }
 
-    public StorageReference getPersonImageRef(Person person) {
+    public StorageReference getPersonImagesRef(Person person) {
         return mStorage.getReference().child("images").child(person.getKey());
+    }
+
+    public StorageReference getPersonImage1Ref(Person person) {
+        return getPersonImagesRef(person).child(person.getPhotoFilename(1));
+    }
+
+    public StorageReference getPersonImage2Ref(Person person) {
+        return getPersonImagesRef(person).child(person.getPhotoFilename(2));
+    }
+
+    public StorageReference getPersonImage3Ref(Person person) {
+        return getPersonImagesRef(person).child(person.getPhotoFilename(3));
+    }
+
+    public File getPhotoFile(Person person, int photoNumber) {
+        File filesDir = mContext.getFilesDir();
+        return new File(filesDir, person.getPhotoFilename(photoNumber));
     }
 
     public Bitmap byteArrayToBitMap(byte[] byteArray) {

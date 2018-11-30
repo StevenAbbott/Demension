@@ -5,21 +5,21 @@ import android.content.Intent;
 import android.support.v4.app.Fragment;
 
 import com.example.sbabb.facial.controllers.base.SingleFragmentActivity;
-import com.example.sbabb.facial.controllers.home.HomeFragment;
 
 public class AddPersonActivity extends SingleFragmentActivity {
 
-    public static final String EXTRA_EDIT_PERSON =
-            "com.example.sbabb.facial.controllers.addperson.edit_person";
+    public static final String EXTRA_PERSON_KEY =
+            "com.example.sbabb.facial.controllers.addperson.person";
 
     @Override
     protected Fragment createFragment() {
-        return AddPersonFragment.newInstance();
+        String personKey = getIntent().getStringExtra(EXTRA_PERSON_KEY);
+        return AddPersonFragment.newInstance(personKey);
     }
 
-    public static Intent newIntent(Context packageContext, boolean edit) {
+    public static Intent newIntent(Context packageContext, boolean edit, String personKey) {
         Intent intent = new Intent(packageContext, AddPersonActivity.class);
-        intent.putExtra(EXTRA_EDIT_PERSON, edit);
+        intent.putExtra(EXTRA_PERSON_KEY, personKey);
         return intent;
     }
 }
