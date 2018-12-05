@@ -1,5 +1,7 @@
 package com.example.sbabb.facial.controllers.addperson;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.sbabb.facial.R;
+import com.example.sbabb.facial.controllers.takepicture.TakePictureFragment;
 import com.example.sbabb.facial.model.ModelManager;
 import com.example.sbabb.facial.model.Person;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -33,6 +36,10 @@ import java.io.File;
 // when the user exits/ presses save, it will update the image and Person in FB
 public class AddPersonFragment extends Fragment{
     public static final String TAG = "AddPersonFragment";
+
+    private static final int REQUEST_PHOTO_1 = 0;
+    private static final int REQUEST_PHOTO_2 = 0;
+    private static final int REQUEST_PHOTO_3 = 0;
 
     public static final String ARG_PERSON_KEY = "person_key";
 
@@ -114,7 +121,7 @@ public class AddPersonFragment extends Fragment{
         mAddPhotoImageView1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                takePicture(mPhotoFile1);
+                TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile1));
             }
         });
 
@@ -122,7 +129,7 @@ public class AddPersonFragment extends Fragment{
         mAddPhotoImageView2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                takePicture(mPhotoFile2);
+                TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile2));
             }
         });
 
@@ -130,7 +137,7 @@ public class AddPersonFragment extends Fragment{
         mAddPhotoImageView3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                takePicture(mPhotoFile3);
+                TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile3));
             }
         });
 
@@ -150,34 +157,38 @@ public class AddPersonFragment extends Fragment{
             @Override
             public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                 Log.d(TAG, "Retrieved photo 1.");
-                mm.getPersonImage2Ref(mPerson).getFile(mPhotoFile2).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                        Log.d(TAG, "Retrieved photo 2.");
-                        mm.getPersonImage3Ref(mPerson).getFile(mPhotoFile3).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                                updateUI();
-                                Log.d(TAG, "Retrieved photo 3.");
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.d(TAG, "Failed to retrieve photo3.");
-                            }
-                        });
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG, "Failed to retrieve photo2.");
-                    }
-                });
+                updateUI();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.d(TAG, "Failed to retrieve photo1.");
+            }
+        });
+
+        mm.getPersonImage2Ref(mPerson).getFile(mPhotoFile2).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                Log.d(TAG, "Retrieved photo 2.");
+                updateUI();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "Failed to retrieve photo2.");
+            }
+        });
+
+        mm.getPersonImage3Ref(mPerson).getFile(mPhotoFile3).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                updateUI();
+                Log.d(TAG, "Retrieved photo 3.");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "Failed to retrieve photo3.");
             }
         });
     }
@@ -224,8 +235,21 @@ public class AddPersonFragment extends Fragment{
         });
     }
 
-    private void takePicture(File pictureFile) {
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
 
+        if (requestCode == REQUEST_PHOTO_1) {
+            mPhotoFile1 = new File(((Uri) data.getParcelableExtra(TakePictureFragment.EXTRA_PHOTO)).toString());
+        } else if (requestCode == REQUEST_PHOTO_2){
+            mPhotoFile2 = new File(((Uri) data.getParcelableExtra(TakePictureFragment.EXTRA_PHOTO)).toString());
+        } else if (requestCode == REQUEST_PHOTO_3) {
+            mPhotoFile3 = new File(((Uri) data.getParcelableExtra(TakePictureFragment.EXTRA_PHOTO)).toString());
+        }
+
+        updateUI();
     }
 
     @Override

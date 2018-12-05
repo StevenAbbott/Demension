@@ -17,7 +17,7 @@ public class AddPersonActivity extends SingleFragmentActivity {
         return AddPersonFragment.newInstance(personKey);
     }
 
-    public static Intent newIntent(Context packageContext, boolean edit, String personKey) {
+    public static Intent newIntent(Context packageContext, String personKey) {
         Intent intent = new Intent(packageContext, AddPersonActivity.class);
         intent.putExtra(EXTRA_PERSON_KEY, personKey);
         return intent;

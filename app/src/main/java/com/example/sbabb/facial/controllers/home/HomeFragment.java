@@ -1,6 +1,8 @@
 package com.example.sbabb.facial.controllers.home;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -11,8 +13,13 @@ import android.view.ViewGroup;
 
 import com.example.sbabb.facial.R;
 import com.example.sbabb.facial.controllers.addperson.AddPersonActivity;
+import com.example.sbabb.facial.controllers.takepicture.TakePictureFragment;
+import com.example.sbabb.facial.controllers.viewperson.ViewPersonActivity;
+import com.example.sbabb.facial.controllers.viewperson.ViewPersonFragment;
 
 public class HomeFragment extends Fragment {
+
+    private static final int REQUEST_PHOTO = 0;
 
     FloatingActionButton mAddPersonFAButton;
     FloatingActionButton mTakePictureFAButton;
@@ -38,7 +45,7 @@ public class HomeFragment extends Fragment {
         mAddPersonFAButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = AddPersonActivity.newIntent(getActivity(), true);
+                Intent i = AddPersonActivity.newIntent(getContext(), null);
             }
         });
 
@@ -58,6 +65,18 @@ public class HomeFragment extends Fragment {
 
     public void updateUI() {
 
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+
+        if (requestCode == REQUEST_PHOTO) {
+            Uri photoUri = data.getParcelableExtra(TakePictureFragment.EXTRA_PHOTO);
+            ViewPersonActivity.newIntent(getContext(), photoUri);
+        }
     }
 
     public static HomeFragment newInstance() {
