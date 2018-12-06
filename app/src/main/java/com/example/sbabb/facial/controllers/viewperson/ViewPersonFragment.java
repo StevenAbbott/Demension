@@ -8,14 +8,23 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.sbabb.facial.R;
+import com.example.sbabb.facial.controllers.addperson.AddPersonFragment;
 import com.example.sbabb.facial.model.ModelManager;
 import com.example.sbabb.facial.model.Person;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
+
+import java.io.File;
 
 // from "take picture button" or library
 // takes in bitmap of person's face
@@ -27,9 +36,14 @@ public class ViewPersonFragment extends Fragment {
 
     private static final String ARG_PERSON = "argPersonn";
 
+    private ImageView mPersonImageView;
+    private Button mEditButton;
+    private TextView mNameTextView;
+
     private ModelManager mm = ModelManager.get(getContext());
     private String mPersonKey;
     private Person mPerson;
+    private File mPhotoFile;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,15 +61,28 @@ public class ViewPersonFragment extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_view_person, container, false);
 
+        mPersonImageView = (ImageView) v.findViewById(R.id.person_main_image);
+        mNameTextView = (TextView) v.findViewById(R.id.person_name_tv);
 
-
+        mEditButton = v.findViewById(R.id.edit_person_but);
+        mEditButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AddPersonFragment.newInstance(mPersonKey);
+            }
+        });
 
         updateUI();
         return v;
     }
 
     public void updateUI() {
-
+        if (mPerson != null) {
+            mNameTextView.setText(mPerson.getName());
+        }
+        if (mPhotoFile != null) {
+            mPersonImageView.setImageURI(Uri.fromFile(mPhotoFile));
+        }
     }
 
     private void retrievePerson() {
@@ -65,6 +92,19 @@ public class ViewPersonFragment extends Fragment {
                 Log.d(TAG, "successfully retrieved person.");
                 mPerson = dataSnapshot.getValue(Person.class);
                 updateUI();
+                mPhotoFile = mm.getPhotoFile(mPerson, 1);
+                mm.getPersonImage1Ref(mPerson).getFile(mPhotoFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                        Log.d(TAG, "Retrieved photo 1.");
+                        updateUI();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG, "Failed to retrieve photo1.");
+                    }
+                });
             }
 
             @Override
@@ -79,7 +119,6 @@ public class ViewPersonFragment extends Fragment {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putString(ARG_PERSON, mPersonKey);
     }
-
 
     public static ViewPersonFragment newInstance(String personKey) {
         if (personKey == null) {

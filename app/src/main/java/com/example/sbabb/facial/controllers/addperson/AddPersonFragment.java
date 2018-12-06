@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -121,7 +122,11 @@ public class AddPersonFragment extends Fragment{
         mAddPhotoImageView1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile1));
+                TakePictureFragment fragment = TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile1));
+                FragmentManager fm = getChildFragmentManager();
+                fm.beginTransaction()
+                        .add(R.id.fragment_container, fragment)
+                        .commit();
             }
         });
 
@@ -129,7 +134,11 @@ public class AddPersonFragment extends Fragment{
         mAddPhotoImageView2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile2));
+                TakePictureFragment fragment = TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile2));
+                FragmentManager fm = getChildFragmentManager();
+                fm.beginTransaction()
+                        .add(R.id.fragment_container, fragment)
+                        .commit();
             }
         });
 
@@ -137,7 +146,11 @@ public class AddPersonFragment extends Fragment{
         mAddPhotoImageView3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile3));
+                TakePictureFragment fragment = TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile3));
+                FragmentManager fm = getChildFragmentManager();
+                fm.beginTransaction()
+                        .add(R.id.fragment_container, fragment)
+                        .commit();
             }
         });
 
@@ -194,43 +207,48 @@ public class AddPersonFragment extends Fragment{
     }
 
     private void uploadImagesToStorage() {
+
+
         Uri file1 = Uri.fromFile(mPhotoFile1);
         UploadTask uploadTask1 = mm.getPersonImage1Ref(mPerson).putFile(file1);
         uploadTask1.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Log.d(TAG, "Successfully uploaded photo1.");
-                Uri file2 = Uri.fromFile(mPhotoFile2);
-                UploadTask uploadTask2 = mm.getPersonImage1Ref(mPerson).putFile(file2);
-                uploadTask2.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        Log.d(TAG, "Successfully uploaded photo2.");
-                        Uri file3 = Uri.fromFile(mPhotoFile3);
-                        UploadTask uploadTask3 = mm.getPersonImage1Ref(mPerson).putFile(file3);
-                        uploadTask3.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                Log.d(TAG, "Successfully uploaded photo3.");
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.d(TAG, "Failed to upload photo3.");
-                            }
-                        });
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG, "Failed to upload photo2.");
-                    }
-                });
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.d(TAG, "Failed to upload photo1.");
+            }
+        });
+
+        Uri file2 = Uri.fromFile(mPhotoFile2);
+        UploadTask uploadTask2 = mm.getPersonImage1Ref(mPerson).putFile(file2);
+        uploadTask2.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Log.d(TAG, "Successfully uploaded photo2.");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "Failed to upload photo2.");
+            }
+        });
+
+
+        Uri file3 = Uri.fromFile(mPhotoFile3);
+        UploadTask uploadTask3 = mm.getPersonImage1Ref(mPerson).putFile(file3);
+        uploadTask3.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Log.d(TAG, "Successfully uploaded photo3.");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "Failed to upload photo3.");
             }
         });
     }

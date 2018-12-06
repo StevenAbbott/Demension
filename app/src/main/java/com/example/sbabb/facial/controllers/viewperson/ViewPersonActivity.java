@@ -10,16 +10,16 @@ import com.example.sbabb.facial.controllers.base.SingleFragmentActivity;
 
 public class ViewPersonActivity extends SingleFragmentActivity {
 
-    private static final String EXTRA_PHOTO = "extrra_photot";
+    private static final String EXTRA_PERSON = "extrra_personn";
 
     @Override
     protected Fragment createFragment() {
         return new ViewPersonFragment();
     }
 
-    public static Intent newIntent(Context packageContext, Uri photoUri) {
+    public static Intent newIntent(Context packageContext, String personKey) {
         Intent intent = new Intent(packageContext, AddPersonActivity.class);
-        intent.putExtra(EXTRA_PHOTO, photoUri);
+        intent.putExtra(EXTRA_PERSON, personKey);
         return intent;
     }
 }

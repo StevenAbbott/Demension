@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,17 +18,24 @@ import com.example.sbabb.facial.controllers.takepicture.TakePictureFragment;
 import com.example.sbabb.facial.controllers.viewperson.ViewPersonActivity;
 import com.example.sbabb.facial.controllers.viewperson.ViewPersonFragment;
 
+import java.io.File;
+
 public class HomeFragment extends Fragment {
 
     private static final int REQUEST_PHOTO = 0;
 
-    FloatingActionButton mAddPersonFAButton;
-    FloatingActionButton mTakePictureFAButton;
-    RecyclerView mPersonRecyclerView;
+    private FloatingActionButton mAddPersonFAButton;
+    private FloatingActionButton mTakePictureFAButton;
+    private RecyclerView mPersonRecyclerView;
+
+    private File mPhotoFile;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mPhotoFile = new File("IMGTemp_.jpg");
 
         if (savedInstanceState != null) {
 
@@ -53,9 +61,11 @@ public class HomeFragment extends Fragment {
         mTakePictureFAButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // take picture
-                // identify picture
-                // start ViewPersonFragment
+                TakePictureFragment fragment = TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile));
+                FragmentManager fm = getChildFragmentManager();
+                fm.beginTransaction()
+                        .add(R.id.fragment_container, fragment)
+                        .commit();
             }
         });
 
@@ -75,7 +85,11 @@ public class HomeFragment extends Fragment {
 
         if (requestCode == REQUEST_PHOTO) {
             Uri photoUri = data.getParcelableExtra(TakePictureFragment.EXTRA_PHOTO);
-            ViewPersonActivity.newIntent(getContext(), photoUri);
+            // decide if its a person
+            //if its not, display some feedback
+            // if it is, decide who it is
+            // get their personKey
+            // view them in a new PersonViewFragment
         }
     }
 
