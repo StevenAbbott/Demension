@@ -19,13 +19,12 @@ import com.example.sbabb.facial.R;
 
 import java.io.File;
 import java.net.URI;
-import java.util.Date;
 import java.util.List;
 
 public class TakePictureFragment extends Fragment {
     private static String TAG = "TakePictureFragment";
 
-    private static String ARG_PHOTO_URI = "PhotoUri";
+    private static String ARG_PHOTO_NAME = "PhotoUri";
     public static final String EXTRA_PHOTO = "photoExtra";
 
     private static final int REQUEST_PHOTO = 0;
@@ -39,8 +38,11 @@ public class TakePictureFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+        mPhotoFile = new File(getContext().getFilesDir(), getArguments().getString(ARG_PHOTO_NAME));
+        Log.d(TAG, "finally got that picture you asked for, here's the path! " + mPhotoFile.getAbsolutePath());
         if (savedInstanceState != null) {
-            mPhotoFile = new File(savedInstanceState.getParcelable(ARG_PHOTO_URI).toString());
+
         }
     }
 
@@ -59,7 +61,9 @@ public class TakePictureFragment extends Fragment {
         // if cant take photo return error
         if (!mCanTakePhoto) {
             updateUI();
-            throw new RuntimeException("Unable to take photo. Must be able to take photo.");
+            throw new RuntimeException("Unable to take photo. Must be able to take photo.\n" +
+                    "photoFile: " + mPhotoFile + "\n" +
+                    "capture image thing: " + captureImage.resolveActivity(packageManager));
         }
 
         takePicture(captureImage);
@@ -79,8 +83,8 @@ public class TakePictureFragment extends Fragment {
     }
 
     private void takePicture(Intent captureImage) {
-        Uri uri = FileProvider.getUriForFile(getContext(),
-                "com.example.sbabb.facial", mPhotoFile);
+        Uri uri = FileProvider.getUriForFile(getActivity(),
+                "com.example.sbabb.facial.fileprovider", mPhotoFile);
         captureImage.putExtra(MediaStore.EXTRA_OUTPUT, uri);
 
         List<ResolveInfo> cameraActivities = getActivity()
@@ -103,24 +107,24 @@ public class TakePictureFragment extends Fragment {
 
         if (requestCode == REQUEST_PHOTO) {
             Uri uri = FileProvider.getUriForFile(getActivity(),
-                    "com.example.sbabb.facial",
+                    "com.example.sbabb.facial.fileprovider",
                     mPhotoFile);
 
             getActivity().revokeUriPermission(uri,
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-            sendResult(Activity.RESULT_OK, mPhotoFile.toURI());
+            sendResult(Activity.RESULT_OK, uri);
         }
     }
 
-    private void sendResult(int resultCode, URI photoUri) {
+    private void sendResult(int resultCode, Uri photoUri) {
         if (getTargetFragment() == null) {
             return;
         }
 
         Intent intent = new Intent();
-        intent.putExtra(EXTRA_PHOTO, mPhotoFile);
-
+        intent.putExtra(EXTRA_PHOTO, photoUri);
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
         getTargetFragment()
                 .onActivityResult(getTargetRequestCode(), resultCode, intent);
     }
@@ -128,13 +132,13 @@ public class TakePictureFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putParcelable(ARG_PHOTO_URI, Uri.fromFile(mPhotoFile));
+        savedInstanceState.putParcelable(ARG_PHOTO_NAME, Uri.fromFile(mPhotoFile));
     }
 
-    public static TakePictureFragment newInstance(Uri photoUri) {
+    public static TakePictureFragment newInstance(String photoName) {
         Bundle args = new Bundle();
         TakePictureFragment fragment = new TakePictureFragment();
-        args.putParcelable(ARG_PHOTO_URI, photoUri);
+        args.putString(ARG_PHOTO_NAME, photoName);
         fragment.setArguments(args);
         return fragment;
     }

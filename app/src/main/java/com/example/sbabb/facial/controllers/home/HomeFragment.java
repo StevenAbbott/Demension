@@ -2,25 +2,32 @@ package com.example.sbabb.facial.controllers.home;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.example.sbabb.facial.R;
 import com.example.sbabb.facial.controllers.addperson.AddPersonActivity;
 import com.example.sbabb.facial.controllers.takepicture.TakePictureFragment;
 import com.example.sbabb.facial.controllers.viewperson.ViewPersonActivity;
 import com.example.sbabb.facial.controllers.viewperson.ViewPersonFragment;
+import com.google.firebase.FirebaseApp;
 
 import java.io.File;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
+    private static final String TAG = "HomeFragment";
 
     private static final int REQUEST_PHOTO = 0;
 
@@ -28,15 +35,19 @@ public class HomeFragment extends Fragment {
     private FloatingActionButton mTakePictureFAButton;
     private RecyclerView mPersonRecyclerView;
 
+    private ImageView mTestImageView;
+
     private File mPhotoFile;
+    private static String mPhotoName = "IMGTemp_.jpg";
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mPhotoFile = new File("IMGTemp_.jpg");
+        FirebaseApp.initializeApp(getContext());
 
+        mPhotoFile = new File(getContext().getFilesDir(), mPhotoName);
         if (savedInstanceState != null) {
 
         }
@@ -47,6 +58,8 @@ public class HomeFragment extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_home, container, false);
 
+        mTestImageView = (ImageView) v.findViewById(R.id.test_iv);
+
         mPersonRecyclerView = (RecyclerView) v.findViewById(R.id.people_recycler_view);
 
         mAddPersonFAButton = (FloatingActionButton) v.findViewById(R.id.add_person_button);
@@ -54,6 +67,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent i = AddPersonActivity.newIntent(getContext(), null);
+                startActivity(i);
             }
         });
 
@@ -61,8 +75,9 @@ public class HomeFragment extends Fragment {
         mTakePictureFAButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TakePictureFragment fragment = TakePictureFragment.newInstance(Uri.fromFile(mPhotoFile));
-                FragmentManager fm = getChildFragmentManager();
+                TakePictureFragment fragment = TakePictureFragment.newInstance(mPhotoName);
+                fragment.setTargetFragment(HomeFragment.this, REQUEST_PHOTO);
+                FragmentManager fm = getActivity().getSupportFragmentManager();
                 fm.beginTransaction()
                         .add(R.id.fragment_container, fragment)
                         .commit();
@@ -85,6 +100,10 @@ public class HomeFragment extends Fragment {
 
         if (requestCode == REQUEST_PHOTO) {
             Uri photoUri = data.getParcelableExtra(TakePictureFragment.EXTRA_PHOTO);
+            Log.d(TAG, "onActRes, REQUEST_PHOTO, setting test ImgaeView URI to: " + photoUri);
+            mTestImageView.setRotation(90);
+            mTestImageView.setImageURI(photoUri);
+
             // decide if its a person
             //if its not, display some feedback
             // if it is, decide who it is
