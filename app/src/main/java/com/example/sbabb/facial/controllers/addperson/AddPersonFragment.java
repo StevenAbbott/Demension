@@ -45,10 +45,11 @@ public class AddPersonFragment extends Fragment{
     public static final String TAG = "AddPersonFragment";
 
     private static final int REQUEST_PHOTO_1 = 0;
-    private static final int REQUEST_PHOTO_2 = 0;
-    private static final int REQUEST_PHOTO_3 = 0;
+    private static final int REQUEST_PHOTO_2 = 1;
+    private static final int REQUEST_PHOTO_3 = 2;
 
     public static final String ARG_PERSON_KEY = "person_key";
+    public static final String ARG_NEW_PERSON = "new_person";
 
     private ImageView mAddPhotoImageView1;
     private ImageView mAddPhotoImageView2;
@@ -75,22 +76,26 @@ public class AddPersonFragment extends Fragment{
 
         mm = ModelManager.get(getContext());
 
+        mPersonKey = getArguments().getString(ARG_PERSON_KEY);
         mImage1Loading = false;
         mImage2Loading = false;
         mImage3Loading = false;
+        mNewPerson = (mPersonKey == null);
 
         if (savedInstanceState != null) {
             mPersonKey = savedInstanceState.getString(ARG_PERSON_KEY);
+            mNewPerson = savedInstanceState.getBoolean(ARG_PERSON_KEY);
         }
 
-        mNewPerson = (mPersonKey == null);
         if (mPersonKey != null) {
             mm.getPersonRef(mPersonKey).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     mPerson = dataSnapshot.getValue(Person.class);
                     Log.d(TAG, "Successfully retrieved person from database.");
-                    retrieveImages();
+                    if (!mNewPerson) {
+                        retrieveImages();
+                    }
                     updateUI();
                 }
 
@@ -120,6 +125,7 @@ public class AddPersonFragment extends Fragment{
                 if ((mPhotoFile1 != null) && (mPhotoFile2 != null) && (mPhotoFile3 != null) && (mNameEditText.getText().toString() != null)) {
                     mPerson.setName(mNameEditText.getText().toString());
                     uploadImagesToStorage();
+                    mm.getPersonRef(mPersonKey).setValue(mPerson);
                     if (mNewPerson) {
                         // add new person to azure personGroup
                     }
@@ -175,21 +181,26 @@ public class AddPersonFragment extends Fragment{
     }
 
     public void updateUI() {
-        mNameEditText.setText(mPerson.getName());
+        if (mPerson.getName() != null) {
+            mNameEditText.setText(mPerson.getName());
+        }
     }
 
     public void updateImage1() {
         mPhotoFile1 = mm.getPhotoFile(mPerson, 1);
+        mAddPhotoImageView1.setRotation(90);
         mAddPhotoImageView1.setImageURI(Uri.fromFile(mPhotoFile1));
     }
 
     public void updateImage2() {
         mPhotoFile2 = mm.getPhotoFile(mPerson, 2);
+        mAddPhotoImageView2.setRotation(90);
         mAddPhotoImageView2.setImageURI(Uri.fromFile(mPhotoFile2));
     }
 
     public void updateImage3() {
         mPhotoFile3 = mm.getPhotoFile(mPerson, 3);
+        mAddPhotoImageView3.setRotation(90);
         mAddPhotoImageView3.setImageURI(Uri.fromFile(mPhotoFile3));
     }
 
@@ -274,7 +285,7 @@ public class AddPersonFragment extends Fragment{
         });
 
         Uri file2 = Uri.fromFile(mPhotoFile2);
-        UploadTask uploadTask2 = mm.getPersonImage1Ref(mPerson).putFile(file2);
+        UploadTask uploadTask2 = mm.getPersonImage2Ref(mPerson).putFile(file2);
         uploadTask2.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -293,7 +304,7 @@ public class AddPersonFragment extends Fragment{
 
 
         Uri file3 = Uri.fromFile(mPhotoFile3);
-        UploadTask uploadTask3 = mm.getPersonImage1Ref(mPerson).putFile(file3);
+        UploadTask uploadTask3 = mm.getPersonImage3Ref(mPerson).putFile(file3);
         uploadTask3.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -322,22 +333,12 @@ public class AddPersonFragment extends Fragment{
             return;
         }
 
-        Uri uri = (Uri) data.getParcelableExtra(TakePictureFragment.EXTRA_PHOTO);
-        Log.d(TAG, "uri: " + uri);
-
         if (requestCode == REQUEST_PHOTO_1) {
-
-            mPhotoFile1 = new File(uri.getPath());
-            Log.d(TAG, "uri path: " + uri.getPath());
-            Log.d(TAG, "uri from file from path from uri: " + Uri.fromFile(mPhotoFile1));
-            mAddPhotoImageView1.setImageURI(uri);
+            updateImage1();
         } else if (requestCode == REQUEST_PHOTO_2){
-            mPhotoFile2 = new File(uri.getPath());
-            Bitmap b = BitmapFactory.decodeFile(mPhotoFile2.getAbsolutePath());
-            mAddPhotoImageView2.setImageBitmap(b);
+            updateImage2();
         } else if (requestCode == REQUEST_PHOTO_3) {
-            mPhotoFile3 = new File(uri.getPath());
-            mAddPhotoImageView3.setImageURI(Uri.fromFile(mPhotoFile3));
+            updateImage3();
         }
 
         updateUI();
@@ -347,6 +348,7 @@ public class AddPersonFragment extends Fragment{
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putString(ARG_PERSON_KEY, mPersonKey);
+        savedInstanceState.putBoolean(ARG_NEW_PERSON, mNewPerson);
     }
 
     public static AddPersonFragment newInstance(String personKey) {

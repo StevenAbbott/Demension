@@ -3,6 +3,7 @@ package com.example.sbabb.facial.model;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DatabaseReference;
@@ -16,6 +17,7 @@ import java.io.File;
 import java.util.UUID;
 
 public class ModelManager {
+    private static final String TAG = "ModelManager";
 
     private static ModelManager mModelManager;
     private Context mContext;
@@ -86,7 +88,9 @@ public class ModelManager {
 
     public File getPhotoFile(Person person, int photoNumber) {
         File filesDir = mContext.getFilesDir();
-        return new File(filesDir, person.getPhotoFilename(photoNumber));
+        File f =  new File(filesDir, person.getPhotoFilename(photoNumber));
+        Log.d(TAG, "getPhotoFile file path: " + f.getPath());
+        return f;
     }
 
     public Bitmap byteArrayToBitMap(byte[] byteArray) {
